@@ -18,7 +18,7 @@ dotnet tool restore                       # installs the pinned dotnet-ef tool
 dotnet run --project src/TradeSnapshot.Api --launch-profile http
 ```
 
-* API: `http://localhost:5080`. Swagger UI: `http://localhost:5080/swagger`
+* API: `http://localhost:5080`. Swagger UI: `http://localhost:5080/swagger` (in `Development`, the root URL redirects there)
 * In `Development` the API applies EF migrations on startup. That creates the schema, the stored procedure and the
   seed data (accounts `ACC-001`/`ACC-002`, AAPL/MSFT in USD, NPN in ZAR, prices for 2025-03-01, USD-ZAR 18.72).
 * Other SQL Server: `ConnectionStrings__TradeSnapshot="Server=...;Database=TradeSnapshot;User Id=...;Password=...;TrustServerCertificate=True"`
