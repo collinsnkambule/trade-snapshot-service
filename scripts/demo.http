@@ -1,0 +1,64 @@
+### Manual demo (VS / Rider / VS Code REST Client). Run against a fresh database for the expected totals.
+@base = http://localhost:5080
+
+### 1. Initial submission -> 201 CREATED
+POST {{base}}/api/v1/trades
+Content-Type: application/json
+X-Correlation-ID: demo-1-initial
+
+{ "external_ref": "TRX-1001", "account_id": "ACC-001", "instrument": { "isin": "US0378331005", "symbol": "AAPL" },
+  "side": "BUY", "quantity": 120, "price": 185.40, "trade_date": "2025-03-01", "as_of": "2025-03-01T10:15:00Z" }
+
+### 2. Re-send (same external_ref and as_of) -> 200 DUPLICATE
+POST {{base}}/api/v1/trades
+Content-Type: application/json
+
+{ "external_ref": "TRX-1001", "account_id": "ACC-001", "instrument": { "isin": "US0378331005", "symbol": "AAPL" },
+  "side": "BUY", "quantity": 120, "price": 185.40, "trade_date": "2025-03-01", "as_of": "2025-03-01T10:15:00Z" }
+
+### 3. Correction (later as_of, changed quantity/price) -> 200 CORRECTED, version 2
+POST {{base}}/api/v1/trades
+Content-Type: application/json
+
+{ "external_ref": "TRX-1001", "account_id": "ACC-001", "instrument": { "isin": "US0378331005" },
+  "side": "BUY", "quantity": 100, "price": 185.20, "trade_date": "2025-03-01", "as_of": "2025-03-01T14:00:00Z" }
+
+### 4. ZAR trade (converted to USD via USD-ZAR 18.72) -> 201 CREATED
+POST {{base}}/api/v1/trades
+Content-Type: application/json
+
+{ "external_ref": "TRX-1002", "account_id": "ACC-001", "instrument": { "isin": "ZAE000015889" },
+  "side": "BUY", "quantity": 50, "price": 4450, "trade_date": "2025-03-01", "as_of": "2025-03-01T10:30:00Z" }
+
+### 5. Snapshot (latest corrected view) -> total_value_usd 30619.23
+GET {{base}}/api/v1/accounts/ACC-001/snapshot?date=2025-03-01
+
+### 6. Snapshot as known before the correction -> total_value_usd 34339.23
+GET {{base}}/api/v1/accounts/ACC-001/snapshot?date=2025-03-01&known_at=2025-03-01T12:00:00Z
+
+### 7. Audit trail
+GET {{base}}/api/v1/trades/TRX-1001
+
+### 8. Recent ingestion events for the account
+GET {{base}}/api/v1/accounts/ACC-001/events?take=20
+
+### 9. Reference data
+PUT {{base}}/api/v1/prices
+Content-Type: application/json
+
+{ "isin": "US0378331005", "date": "2025-03-04", "price": 190.10, "currency": "USD" }
+
+###
+PUT {{base}}/api/v1/fx-rates
+Content-Type: application/json
+
+{ "pair": "USD-ZAR", "date": "2025-03-04", "rate": 18.55 }
+
+### 10. Rollout state
+GET {{base}}/api/v1/admin/correction-handling?account=ACC-001
+
+### Validation error -> 400 with snake_case field names
+POST {{base}}/api/v1/trades
+Content-Type: application/json
+
+{ "external_ref": "", "account_id": "ACC-001", "instrument": {}, "side": "HOLD", "quantity": -5 }

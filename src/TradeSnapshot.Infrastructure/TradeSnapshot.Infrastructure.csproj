@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\TradeSnapshot.Domain\TradeSnapshot.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.33" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.33">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- The Task 2 SQL artifact lives in /sql at the repo root (single source of truth) and is embedded so
+       the EF migration deploys exactly that file. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\sql\usp_GetPortfolioSnapshot.sql" LogicalName="Sql.usp_GetPortfolioSnapshot.sql" Link="Sql\usp_GetPortfolioSnapshot.sql" />
+  </ItemGroup>
+
+</Project>
